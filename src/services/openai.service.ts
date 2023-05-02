@@ -1,19 +1,28 @@
 import { LOGGER } from "../common/logger";
+import { Configuration,OpenAIApi } from "openai";
+import AuthSettings from "./storage.service";
+import { ExtensionContext } from "vscode";
+import * as vscode from 'vscode';
 
-require('dotenv').config();
-// eslint-disable-next-line @typescript-eslint/naming-convention
-const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const getConfiguration = async (context:ExtensionContext) => {
+  AuthSettings.init(context);
+  // Retrieves the API key from the AuthSettings instance.
+  const apiKey = await AuthSettings.instance.getAuthData("OPENAI_API_KEY");
+  // If the API key is not found, an error message is displayed.
+  if(apiKey===undefined || apiKey ===''){
+    vscode.window.showErrorMessage("Please enter a valid API key by using setup Environment Variable Command.");
+  }
+  // returns a Configuration object
+  return new Configuration({apiKey:apiKey});
+};
 
-const openai = new OpenAIApi(configuration);
 
-export const getCommentedCode = async (code: string) => {
+export const getCommentedCode = async (code: string, context:ExtensionContext) => {
   try {
+    const openai = new OpenAIApi(await getConfiguration(context));
     const response = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt: `Provide commented code for the following code entered. ${code}`,
+      prompt: `Give me improved code with better comments. ${code}`,
       // eslint-disable-next-line @typescript-eslint/naming-convention
       max_tokens: 2090,
       temperature: 0
