@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { getCommentedCode } from './services/openai.service';
 import { LOGGER } from './common/logger';
 import AuthSettings from './services/storage.service';
+import { validateAPIKey } from './util';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -25,9 +26,9 @@ export function activate(context: vscode.ExtensionContext) {
 			prompt:"Enter your OpenAi Api key."
 		});
 		// If the user does not enter a valid API key, an error message is displayed.
-		if(inputBox === "" ||  inputBox === undefined){
+		if(!validateAPIKey(inputBox)){
 			vscode.window.showErrorMessage("Please provide a valid OpenAI Api key to use extension.");
-			LOGGER.info(inputBox);
+			// LOGGER.info(inputBox);
 		}
 		// Otherwise, stores it in the AuthSettings instance and success message is displayed.
 		else{

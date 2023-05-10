@@ -3,13 +3,14 @@ import { Configuration,OpenAIApi } from "openai";
 import AuthSettings from "./storage.service";
 import { ExtensionContext } from "vscode";
 import * as vscode from 'vscode';
+import { validateAPIKey } from "../util";
 
 const getConfiguration = async (context:ExtensionContext) => {
   AuthSettings.init(context);
   // Retrieves the API key from the AuthSettings instance.
   const apiKey = await AuthSettings.instance.getAuthData("OPENAI_API_KEY");
   // If the API key is not found, an error message is displayed.
-  if(apiKey===undefined || apiKey ===''){
+  if(!validateAPIKey(apiKey)){
     vscode.window.showErrorMessage("Please enter a valid API key by using setup Environment Variable Command.");
   }
   // returns a Configuration object
