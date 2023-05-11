@@ -1,9 +1,10 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-require ('dotenv').config();
 import * as vscode from 'vscode';
 import { getCommentedCode } from './services/openai.service';
 import { LOGGER } from './common/logger';
+import AuthSettings from './services/storage.service';
+import { validateAPIKey } from './util';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -16,10 +17,30 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('codecompleter.commentCode', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
+	
+	// This code registers a command to update the OpenAI API key.
+	let updateApiKey = vscode.commands.registerCommand('codeCompleter.updateApiKey', async () => {
+		// It prompts the user to enter the API key.
+		const inputBox = await vscode.window.showInputBox({
+			placeHolder: "Enter OpenAi Api Key",
+			prompt:"Enter your OpenAi Api key."
+		});
+		// If the user does not enter a valid API key, an error message is displayed.
+		if(!validateAPIKey(inputBox)){
+			vscode.window.showErrorMessage("Please provide a valid OpenAI Api key to use extension.");
+			// LOGGER.info(inputBox);
+		}
+		// Otherwise, stores it in the AuthSettings instance and success message is displayed.
+		else{
+			AuthSettings.init(context);
+			const settings = AuthSettings.instance;
+			await settings.setAuthToken('OPENAI_API_KEY', inputBox);
+			vscode.window.showInformationMessage("Successfully updated the api key.");
+		}
+	});
 
+	
+	let disposable = vscode.commands.registerCommand('codecompleter.commentCode', () => {
 		//getting the document text
 			const textEditorContext = vscode.window.activeTextEditor;
 			if (textEditorContext !== undefined){
@@ -27,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
 				const codingLanguage = textEditorContext.document.languageId;
 				if(Boolean(code)){
 					vscode.window.showInformationMessage('Generating Comments For Your Code.!');
-					getCommentedCode(code)
+					getCommentedCode(code,context)
 					.then((res) => {
 						if(res.success){
 							LOGGER.info(res);
@@ -53,6 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	context.subscriptions.push(disposable);
+	context.subscriptions.push(updateApiKey);
 }
 
 // This method is called when your extension is deactivated
