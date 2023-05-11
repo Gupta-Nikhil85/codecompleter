@@ -19,7 +19,7 @@
       },
       {
         "command": "codeCompleter.updateApiKey",
-        "title": "Update API key."
+        "title": "Update API Key."
       }
     ]
   },
