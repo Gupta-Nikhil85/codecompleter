@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
 		else{
 			AuthSettings.init(context);
 			const settings = AuthSettings.instance;
-			await settings.storeAuthData('OPENAI_API_KEY', inputBox);
+			await settings.setAuthToken('OPENAI_API_KEY', inputBox);
 			vscode.window.showInformationMessage("Successfully updated the api key.");
 		}
 	});

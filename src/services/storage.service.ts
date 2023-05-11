@@ -16,14 +16,14 @@ export default class AuthSettings {
     }
 
     // Store the given token in the secret storage
-    async storeAuthData(tokenName:string, token?: string): Promise<void> {
+    async setAuthToken(tokenName:string, token?: string): Promise<void> {
         if (token) {
             this.secretStorage.store(tokenName, token);
         }
     }
 
     // Get the token from the secret storage
-    async getAuthData(tokenName:string): Promise<string | undefined> {
+    async getAuthToken(tokenName:string): Promise<string | undefined> {
         return await this.secretStorage.get(tokenName);
     }
 }

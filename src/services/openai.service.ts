@@ -4,11 +4,12 @@ import AuthSettings from "./storage.service";
 import { ExtensionContext } from "vscode";
 import * as vscode from 'vscode';
 import { validateAPIKey } from "../util";
+import { DEFAULT_API_MODEL_CONFIG } from "../util/constants";
 
 const getConfiguration = async (context:ExtensionContext) => {
   AuthSettings.init(context);
   // Retrieves the API key from the AuthSettings instance.
-  const apiKey = await AuthSettings.instance.getAuthData("OPENAI_API_KEY");
+  const apiKey = await AuthSettings.instance.getAuthToken("OPENAI_API_KEY");
   // If the API key is not found, an error message is displayed.
   if(!validateAPIKey(apiKey)){
     vscode.window.showErrorMessage("Please enter a valid API key by using setup Environment Variable Command.");
@@ -22,11 +23,8 @@ export const getCommentedCode = async (code: string, context:ExtensionContext) =
   try {
     const openai = new OpenAIApi(await getConfiguration(context));
     const response = await openai.createCompletion({
-      model: "text-davinci-003",
+      ...DEFAULT_API_MODEL_CONFIG,
       prompt: `Give me improved code with better comments. ${code}`,
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      max_tokens: 2090,
-      temperature: 0
     });
     LOGGER.info(response);
     return { 
