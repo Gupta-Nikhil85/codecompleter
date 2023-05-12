@@ -41,36 +41,38 @@ export function activate(context: vscode.ExtensionContext) {
 
 	
 	let disposable = vscode.commands.registerCommand('codecompleter.commentCode', () => {
-		//getting the document text
-			const textEditorContext = vscode.window.activeTextEditor;
-			if (textEditorContext !== undefined){
-				const code = textEditorContext.document.getText();
-				const codingLanguage = textEditorContext.document.languageId;
-				if(Boolean(code)){
-					vscode.window.showInformationMessage('Generating Comments For Your Code.!');
-					getCommentedCode(code,context)
-					.then((res) => {
-						if(res.success){
-							LOGGER.info(res);
-							res.data.forEach(async (element: any) => {
-								LOGGER.info(element);
-								const rightDoc = await vscode.workspace.openTextDocument({content:element.text, language:codingLanguage});
-								vscode.window.showTextDocument(rightDoc, 2, false);
-							});
-						}
-						else {
-							vscode.window.showErrorMessage(res.message);
-						}
+		// Get the document text from the active text editor
+		const textEditorContext = vscode.window.activeTextEditor;
+		if (textEditorContext !== undefined){
+			const code = textEditorContext.document.getText();
+			const codingLanguage = textEditorContext.document.languageId;
+			if(Boolean(code)){
+				vscode.window.showInformationMessage('Generating Comments For Your Code.!');
+				getCommentedCode(code,context)
+				.then((res) => {
+					if(res.success){
+						LOGGER.info(res);
+						res.data.forEach(async (element: any) => {
+							LOGGER.info(element);
+							// Create a new text document with the commented code
+							const commentedDoc = await vscode.workspace.openTextDocument({content:element.text, language:codingLanguage});
+							// Show the diff between the original and commented code
+							vscode.commands.executeCommand('vscode.diff', commentedDoc.uri, textEditorContext.document.uri);
+						});
 					}
-					).catch((err) => {
-						vscode.window.showErrorMessage(err);
-						LOGGER.info(err);
-					});
+					else {
+						vscode.window.showErrorMessage(res.message);
+					}
 				}
-				else{
-					vscode.window.showErrorMessage('Please add some code to the file.');
-				}
+				).catch((err) => {
+					vscode.window.showErrorMessage(err);
+					LOGGER.info(err);
+				});
 			}
+			else{
+				vscode.window.showErrorMessage('Please add some code to the file.');
+			}
+		}
 	});
 
 	context.subscriptions.push(disposable);
