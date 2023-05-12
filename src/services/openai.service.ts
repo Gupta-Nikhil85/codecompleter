@@ -24,7 +24,7 @@ export const getCommentedCode = async (code: string, context:ExtensionContext) =
     const openai = new OpenAIApi(await getConfiguration(context));
     const response = await openai.createCompletion({
       ...DEFAULT_API_MODEL_CONFIG,
-      prompt: `Give me improved code with better comments. ${code}`,
+      prompt: `Give me improved code with better comments along with code itself. ${code}`,
     });
     LOGGER.info(response);
     return { 
